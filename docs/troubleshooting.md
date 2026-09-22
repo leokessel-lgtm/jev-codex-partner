@@ -13,13 +13,13 @@ The first command prompts for the secret without placing it in shell history. Re
 
 ## GitHub Access
 
-Ensure you have private GitHub access to the repository and your local Git credentials are working correctly to clone and install the plugin.
+The repository is public and does not require collaborator access. Confirm your network and local Git installation can read `https://github.com/leokessel-lgtm/jev-codex-partner`.
 
 ## Installation Failures
 
 Verify you are using the exact installation commands documented in the [README.md](../README.md). Ensure the `--ref main` flag is included.
 
-Private repositories also require Git credentials that can read `leokessel-lgtm/jev-codex-partner`. Repository access and JEV gateway authentication are separate checks.
+Repository access and JEV gateway authentication are separate checks. Cloning is public, but evaluations still require your own gateway credential.
 
 ## Evaluation failures
 

@@ -1,13 +1,12 @@
 # JEV Codex Partner Marketplace
 
-Private, repo-local Codex marketplace for governed TypeSafe JEV evaluations. It adds one prompted MCP tool for bounded Boolean, Choice and Score judgements.
+Public, repo-local Codex marketplace for governed TypeSafe JEV evaluations. It adds one prompted MCP tool for bounded Boolean, Choice and Score judgements.
 
-The repository is intentionally unlicensed. Access permits private collaboration but does not grant a general right to copy, redistribute or publish the code.
+The repository is intentionally unlicensed. Public visibility permits inspection and cloning but does not grant a general right to copy, redistribute, publish or create derivative works from the code.
 
 ## Prerequisites
 
-- Private GitHub access to this repository.
-- Working Git credentials configured locally.
+- Git access to `github.com`.
 - Codex with plugin marketplace support.
 - Node.js 20 or later for local development.
 

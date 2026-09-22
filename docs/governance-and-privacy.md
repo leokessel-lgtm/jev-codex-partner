@@ -1,6 +1,6 @@
 # Governance and Privacy
 
-The JEV Codex Partner repository is private and intentionally unlicensed.
+The JEV Codex Partner repository is public and intentionally unlicensed. Public visibility permits inspection and cloning but does not grant general reuse or redistribution rights.
 
 ## Data Transfer and Privacy
 
