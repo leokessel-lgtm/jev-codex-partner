@@ -4,7 +4,7 @@ The JEV Codex Partner repository is private and intentionally unlicensed.
 
 ## Data Transfer and Privacy
 
-The plugin sends the fields supplied to `evaluate` to TypeSafe JEV through Vercel AI Gateway. This is an external, potentially billable transfer. It does not automatically send source code, files or repository context.
+The plugin sends exactly `model`, `state`, `questions` and `providerOptions` to TypeSafe JEV through Vercel AI Gateway. This is an external, potentially billable transfer. `purpose`, `data_classification`, `sensitive_transfer_approved`, `use_case_id` and `request_metadata` are validated locally but are not transmitted. The plugin does not automatically send source code, files or repository context.
 
 Classify each payload as `synthetic`, `public`, `private` or `sensitive`. Synthetic and public inputs do not require the sensitive-transfer flag. Private and sensitive inputs require approval at action time for the exact fields, destination and purpose, followed by `sensitive_transfer_approved: true` on that request.
 

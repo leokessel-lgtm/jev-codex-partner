@@ -8,7 +8,7 @@
   },
   "scripts": {
     "benchmark:preview": "node bin/run-evaluation.mjs benchmarks/synthetic-cases.json",
-    "benchmark:live": "node bin/run-evaluation.mjs benchmarks/synthetic-cases.json --live --confirm-synthetic",
+    "benchmark:live": "node bin/run-evaluation.mjs benchmarks/synthetic-cases.json --live",
     "test": "node --test test/*.test.mjs",
     "check": "node --check server.mjs && node --check src/*.mjs && node --check bin/*.mjs && node --test test/*.test.mjs"
   },

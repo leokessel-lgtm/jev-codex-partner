@@ -14,7 +14,7 @@ Codex
   -> advisory MCP result
 ```
 
-The tool accepts only the fields defined in [`src/contracts.mjs`](../plugins/jev-codex-partner/src/contracts.mjs). The provider receives the submitted purpose, state and questions plus fixed routing options. It does not receive arbitrary repository contents unless a user includes that material in the approved state.
+The tool accepts only the fields defined in [`src/contracts.mjs`](../plugins/jev-codex-partner/src/contracts.mjs). The external request contains exactly `model`, `state`, `questions` and `providerOptions`. `purpose`, `data_classification`, `sensitive_transfer_approved`, `use_case_id` and `request_metadata` are validated locally but are not transmitted. The provider does not receive arbitrary repository contents unless a user includes that material in the approved `state` or `questions`.
 
 ## Evaluation Mechanisms
 

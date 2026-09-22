@@ -22,6 +22,14 @@ test('plugin and MCP configuration expose one prompted evaluator', () => {
   assert.match(plugin.version, /^0\.1\.5\+codex\.\d{14}$/u);
   assert.equal(packageJson.version, '0.1.5');
   assert.equal(packageJson.private, true);
+  assert.equal(
+    packageJson.scripts['benchmark:live'],
+    'node bin/run-evaluation.mjs benchmarks/synthetic-cases.json --live',
+  );
+  assert.match(
+    fs.readFileSync('../../README.md', 'utf8'),
+    /npm run benchmark:live -- --confirm-synthetic/u,
+  );
   assert.equal(packageLock.version, '0.1.5');
   assert.equal(packageLock.packages[''].version, '0.1.5');
   assert.equal(plugin.repository, 'https://github.com/leokessel-lgtm/jev-codex-partner');
