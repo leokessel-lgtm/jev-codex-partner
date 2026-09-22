@@ -1,0 +1,32 @@
+[
+  {
+    "id": "fictional-library-hours",
+    "classification": "synthetic",
+    "purpose": "Classify a fictional public library opening-hours scenario.",
+    "state": "Fictional Harbourview Library opens weekdays and closes on public holidays.",
+    "questions": {
+      "open": { "type": "boolean", "instructions": "Is the library open on a normal Tuesday?" }
+    },
+    "expected": { "open": true }
+  },
+  {
+    "id": "fictional-ferry-route",
+    "classification": "synthetic",
+    "purpose": "Select a fictional ferry route from public timetable facts.",
+    "state": "Fictional Bay Ferry route A serves North Pier; route B serves South Pier.",
+    "questions": {
+      "route": { "type": "choice", "instructions": "Which route serves North Pier?", "criteria": { "A": "North Pier", "B": "South Pier" } }
+    },
+    "expected": { "route": "A" }
+  },
+  {
+    "id": "fictional-weather-score",
+    "classification": "synthetic",
+    "purpose": "Score a fictional weather comfort description.",
+    "state": "Fictional weather is mild, dry and comfortable for a walk.",
+    "questions": {
+      "comfort": { "type": "score", "instructions": "Rate walking comfort from 0 to 4.", "criteria": ["Very poor", "Poor", "Fair", "Good", "Excellent"] }
+    },
+    "expected": { "comfort": 4 }
+  }
+]

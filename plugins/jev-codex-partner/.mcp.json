@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "jev_partner": {
+      "command": "node",
+      "args": ["./server.mjs"],
+      "cwd": ".",
+      "env_vars": ["AI_GATEWAY_API_KEY"],
+      "startup_timeout_sec": 10,
+      "tool_timeout_sec": 35,
+      "tools": { "evaluate": { "approval_mode": "prompt" } }
+    }
+  }
+}

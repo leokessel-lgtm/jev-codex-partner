@@ -1,0 +1,25 @@
+{
+  "name": "jev-codex-partner",
+  "version": "0.1.5+codex.20260922074046",
+  "description": "Governed JEV evaluation through prompted external, potentially billable requests.",
+  "author": {
+    "name": "Leo Kesselring",
+    "url": "https://github.com/leokessel-lgtm"
+  },
+  "homepage": "https://github.com/leokessel-lgtm/jev-codex-partner#readme",
+  "repository": "https://github.com/leokessel-lgtm/jev-codex-partner",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "JEV Codex Partner",
+    "shortDescription": "Use governed JEV evaluations in Codex.",
+    "longDescription": "Adds a prompted TypeSafe JEV evaluator for bounded, advisory Boolean, Choice and Score judgements. Each use sends the approved payload to an external provider through Vercel AI Gateway and may be billable.",
+    "developerName": "Leo Kesselring",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": "Evaluate this bounded decision with JEV, show the typed probabilities and keep any consequential action subject to my approval."
+  },
+  "mcpServers": "./.mcp.json"
+}

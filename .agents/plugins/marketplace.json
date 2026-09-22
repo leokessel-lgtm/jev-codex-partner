@@ -1,0 +1,20 @@
+{
+  "name": "leo-jev-codex-partner",
+  "interface": {
+    "displayName": "JEV Codex Partner"
+  },
+  "plugins": [
+    {
+      "name": "jev-codex-partner",
+      "source": {
+        "source": "local",
+        "path": "./plugins/jev-codex-partner"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
