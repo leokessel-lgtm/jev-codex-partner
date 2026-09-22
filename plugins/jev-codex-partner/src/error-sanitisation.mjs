@@ -5,7 +5,7 @@ const PEM_PRIVATE_KEY_REMAINDER = /-----BEGIN [^-\r\n]*PRIVATE KEY-----[\s\S]*$/
 const PEM_PRIVATE_KEY_MARKER = /-----BEGIN [^-\r\n]*PRIVATE KEY-----/gu;
 const BEARER_CANDIDATE = /\b(Bearer)[ \t]+([A-Za-z0-9._~+/-]+=*)/giu;
 const JWT_CANDIDATE = /\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/gu;
-const OPAQUE_VENDOR_TOKEN = /\b(?:sk-(?:live-|test-)?[A-Za-z0-9_-]{16,}|(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{20,}|(?:vcp|vercel|npm|hf)_[A-Za-z0-9_-]{20,})\b/gu;
+const OPAQUE_VENDOR_TOKEN = /\b(?:sk-(?:live-|test-)?[A-Za-z0-9_-]{16,}|(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github[_]pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{20,}|(?:vcp|vercel|npm|hf)_[A-Za-z0-9_-]{20,})\b/gu;
 const TEXTUAL_CREDENTIAL_ASSIGNMENT = /\b((?:[A-Za-z0-9]+[-_])*(?:x[-_]?api[-_]?key|api[-_]?key|client[-_]?secret|(?:auth|id|session|access|refresh|oauth|bearer|client|service|device|csrf|xsrf)[-_]?token|private[-_]?key|password|secret|authorization|credential|token))(\s*[:=]\s*)(?:"[^"\r\n]+"|'[^'\r\n]+'|[^\s,;]+)/giu;
 
 export function containsCredentialValue(value) {

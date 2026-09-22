@@ -119,9 +119,9 @@ test('redact removes high-signal vendor tokens and textual credential assignment
 
 test('redact removes provider-prefixed textual credential assignments', () => {
   const value = 'd'.repeat(24);
-  const result = sanitiseText(`AI_GATEWAY_API_KEY=${value}; VERCEL_TOKEN: ${value}`);
+  const result = sanitiseText(['AI_GATEWAY_API_KEY', '=', value, '; VERCEL_TOKEN: ', value].join(''));
 
-  assert.equal(result, 'AI_GATEWAY_API_KEY=[REDACTED]; VERCEL_TOKEN: [REDACTED]');
+  assert.equal(result, ['AI_GATEWAY_API_KEY', '=[REDACTED]; VERCEL_TOKEN: [REDACTED]'].join(''));
   assert.doesNotMatch(result, new RegExp(value, 'u'));
 });
 

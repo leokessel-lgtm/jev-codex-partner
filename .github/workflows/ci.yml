@@ -25,4 +25,6 @@ jobs:
           npm run check
 
       - name: Check relative links
-        run: node scripts/check-relative-links.mjs
+        run: |
+          node --test scripts/check-relative-links.test.mjs
+          node scripts/check-relative-links.mjs
