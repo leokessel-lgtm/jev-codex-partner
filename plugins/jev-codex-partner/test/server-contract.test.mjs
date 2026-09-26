@@ -50,7 +50,7 @@ const NORMALISED_EVALUATION = {
   provider: 'typesafe-ai',
   requestedModel: 'typesafe-ai/jev',
   resolvedModel: 'typesafe-ai/jev',
-  pluginVersion: '0.1.6',
+  pluginVersion: '0.1.7',
   answers: {
     ready: { type: 'boolean', probability: 0.92 },
   },
@@ -199,7 +199,7 @@ test('in-process MCP server lists only evaluate and passes the request signal to
 
   try {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
-    assert.equal(client.getServerVersion().version, '0.1.6');
+    assert.equal(client.getServerVersion().version, '0.1.7');
     const listing = await client.listTools();
     assert.equal(listing.tools.length, 1);
     assertToolContract(listing.tools[0]);
@@ -216,7 +216,7 @@ test('real stdio server lists and calls the mocked evaluate tool without a live 
   const fixture = createStdioFixture({ apiKey: 'stdio-contract-key' });
   try {
     await fixture.client.connect(fixture.transport);
-    assert.equal(fixture.client.getServerVersion().version, '0.1.6');
+    assert.equal(fixture.client.getServerVersion().version, '0.1.7');
     const listing = await fixture.client.listTools();
     assert.equal(listing.tools.length, 1);
     assertToolContract(listing.tools[0]);

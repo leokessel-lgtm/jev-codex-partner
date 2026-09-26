@@ -12,12 +12,17 @@ The repository is intentionally unlicensed. Public visibility permits inspection
 
 ## Installation
 
-Run the following commands to install the marketplace and plugin:
+Clone the pinned release, install the local MCP server dependencies, then add the checked-out marketplace:
 
 ```bash
-codex plugin marketplace add leokessel-lgtm/jev-codex-partner --ref main
+git clone --branch v0.1.7 --depth 1 https://github.com/leokessel-lgtm/jev-codex-partner.git
+cd jev-codex-partner
+npm --prefix plugins/jev-codex-partner ci --omit=dev
+codex plugin marketplace add .
 codex plugin add jev-codex-partner@leo-jev-codex-partner
 ```
+
+Keep the checkout while the marketplace is configured. A direct Git marketplace install does not install this local Node MCP server's dependencies; the explicit `npm ci --omit=dev` step is required.
 
 ## Authentication
 

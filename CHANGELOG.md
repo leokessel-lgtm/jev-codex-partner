@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.7 - 2026-09-26
+
+- Correct the public installation flow so local MCP server dependencies are installed before the marketplace is registered.
+- Retain the v0.1.6 gateway-contract and inherited-confidence-key fixes unchanged.
+
 ## 0.1.6 - 2026-09-26
 
 - Change the GitHub repository from private to public and align access, contribution, security and troubleshooting guidance.
