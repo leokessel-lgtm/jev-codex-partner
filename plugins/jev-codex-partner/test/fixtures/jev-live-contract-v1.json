@@ -1,0 +1,79 @@
+{
+  "answers": {
+    "open": {
+      "type": "boolean",
+      "probability": 0.98
+    },
+    "route": {
+      "type": "choice",
+      "choice": "A",
+      "probabilities": {
+        "A": 1,
+        "B": 0
+      },
+      "confidence": 1
+    },
+    "comfort": {
+      "type": "score",
+      "score": 3.94,
+      "probabilities": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0.06,
+        "4": 0.94
+      },
+      "confidence": 0.95
+    }
+  },
+  "model": "typesafe-ai/jev",
+  "providerMetadata": {
+    "typesafe": {
+      "confidence": {
+        "route": 1,
+        "comfort": 0.95
+      }
+    },
+    "gateway": {
+      "routing": {
+        "originalModelId": "typesafe-ai/jev",
+        "resolvedProvider": "typesafe-ai",
+        "fallbacksAvailable": [],
+        "planningReasoning": "Provider set restricted to the configured TypeSafe-only route.",
+        "canonicalSlug": "typesafe-ai/jev",
+        "finalProvider": "typesafe-ai",
+        "modelAttemptCount": 1,
+        "modelAttempts": [
+          {
+            "canonicalSlug": "typesafe-ai/jev",
+            "success": true,
+            "providerAttemptCount": 1,
+            "providerAttempts": [
+              {
+                "provider": "typesafe-ai",
+                "credentialType": "system",
+                "success": true,
+                "startTime": 1,
+                "endTime": 2,
+                "statusCode": 200
+              }
+            ]
+          }
+        ],
+        "totalProviderAttemptCount": 1
+      },
+      "cost": "0.00001911",
+      "marketCost": "0.00001911",
+      "surchargeCost": "0",
+      "gatewayCost": "0.00001911",
+      "inferenceCost": "0.00001911",
+      "inputInferenceCost": "0.00001911",
+      "outputInferenceCost": "0",
+      "generationId": "gen_fixture"
+    }
+  },
+  "usage": {
+    "inputTokens": 455,
+    "outputTokens": 61
+  }
+}
