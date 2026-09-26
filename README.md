@@ -8,7 +8,7 @@ The repository is intentionally unlicensed. Public visibility permits inspection
 
 - Git access to `github.com`.
 - Codex with plugin marketplace support.
-- Node.js 20 or later for local development.
+- Node.js 20 or later, including npm.
 
 ## Installation
 
