@@ -123,7 +123,11 @@ function normaliseAnswers(rawAnswers, questions, confidenceByQuestion) {
     } else {
       throw invalid('question type is unsupported');
     }
-    addConfidence(result[id], answer, confidenceByQuestion[id]);
+    addConfidence(
+      result[id],
+      answer,
+      Object.hasOwn(confidenceByQuestion, id) ? confidenceByQuestion[id] : undefined,
+    );
   }
   return result;
 }

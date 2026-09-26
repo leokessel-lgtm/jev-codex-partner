@@ -317,6 +317,27 @@ test('TypeSafe metadata supplies optional confidence when the answer omits it', 
   assert.equal(result.answers.outcome.confidence, 0.73);
 });
 
+test('question IDs inherited from Object.prototype do not imply confidence metadata', () => {
+  const raw = validResponse({
+    answers: {
+      toString: { type: 'boolean', probability: 0.98 },
+    },
+  });
+  const context = {
+    ...CONTEXT,
+    questions: {
+      toString: {
+        type: 'boolean',
+        instructions: 'Is the evidence sufficient?',
+      },
+    },
+  };
+
+  const result = normaliseGatewayResponse(raw, context);
+
+  assert.deepEqual(result.answers.toString, { type: 'boolean', probability: 0.98 });
+});
+
 test('answer and TypeSafe metadata confidence must agree when both are present', () => {
   const raw = validResponse();
   raw.answers.outcome.confidence = 0.75;

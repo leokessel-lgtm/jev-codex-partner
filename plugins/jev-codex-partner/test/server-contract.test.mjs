@@ -100,6 +100,40 @@ test('handler returns the stable success envelope after validation, gateway and 
   assert.deepEqual(result, callResult({ ok: true, evaluation: NORMALISED_EVALUATION }));
 });
 
+test('handler accepts an Object.prototype question ID without inferred confidence metadata', async () => {
+  const input = {
+    ...VALID_INPUT,
+    questions: {
+      toString: { type: 'boolean', instructions: 'Is the evidence sufficient?' },
+    },
+  };
+  const raw = {
+    ...RAW_RESPONSE,
+    answers: {
+      toString: { type: 'boolean', probability: 0.92 },
+    },
+  };
+
+  const result = await handleEvaluate(input, {
+    gatewayClient: {
+      async evaluate() {
+        return {
+          raw,
+          durationMs: 17,
+          attempts: 1,
+          requestId: 'gateway-request-123',
+        };
+      },
+    },
+  }, {});
+
+  assert.equal(result.structuredContent.ok, true);
+  assert.deepEqual(result.structuredContent.evaluation.answers.toString, {
+    type: 'boolean',
+    probability: 0.92,
+  });
+});
+
 test('handler returns a stable validation failure without constructing or calling a gateway', async () => {
   let gatewayCalls = 0;
   const invalid = { ...VALID_INPUT, purpose: '' };
