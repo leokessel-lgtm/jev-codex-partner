@@ -1,6 +1,6 @@
 {
   "name": "jev-codex-partner",
-  "version": "0.1.6+codex.20260926081836",
+  "version": "0.1.6+codex.20260926082617",
   "description": "Governed JEV evaluation through prompted external, potentially billable requests.",
   "author": {
     "name": "Leo Kesselring",

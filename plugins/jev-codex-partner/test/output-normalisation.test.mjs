@@ -163,6 +163,11 @@ test('score value must be finite and within the declared criteria range', () => 
   }
 
   assert.doesNotThrow(() => normaliseGatewayResponse(validResponse(), CONTEXT));
+  for (const value of [0, QUESTIONS.quality.criteria.length - 1]) {
+    const raw = validResponse();
+    raw.answers.quality.score = value;
+    assert.doesNotThrow(() => normaliseGatewayResponse(raw, CONTEXT));
+  }
 });
 
 test('choice probability keys must exactly match the criteria', () => {
@@ -320,6 +325,13 @@ test('answer and TypeSafe metadata confidence must agree when both are present',
   rejects(raw);
 });
 
+test('TypeSafe confidence metadata cannot name an unrequested question', () => {
+  const raw = validResponse();
+  raw.providerMetadata.typesafe = { confidence: { unrequested: 0.5 } };
+
+  rejects(raw);
+});
+
 test('usage token counts must be non-negative finite integers', () => {
   for (const key of ['inputTokens', 'outputTokens']) {
     for (const value of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, '20']) {
@@ -386,4 +398,22 @@ test('generation IDs must be bounded safe identifiers without credential-shaped 
     raw.providerMetadata.gateway.generationId = generationId;
     assert.equal(normaliseGatewayResponse(raw, CONTEXT).requestId, generationId);
   }
+});
+
+test('gateway request IDs must be bounded safe identifiers without credential-shaped content', () => {
+  for (const gatewayRequestId of [
+    123,
+    'request id with spaces',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature',
+  ]) {
+    rejects(validResponse(), { ...CONTEXT, gatewayRequestId });
+  }
+
+  assert.equal(
+    normaliseGatewayResponse(validResponse(), {
+      ...CONTEXT,
+      gatewayRequestId: 'syd1::cle1::request-123',
+    }).gatewayRequestId,
+    'syd1::cle1::request-123',
+  );
 });
