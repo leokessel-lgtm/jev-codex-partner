@@ -1,5 +1,6 @@
 export const GATEWAY_URL = 'https://ai-gateway.vercel.sh/v1/evaluate';
 export const MODEL_ID = 'typesafe-ai/jev';
+export const PLUGIN_VERSION = '0.1.6';
 export const PROVIDER_OPTIONS = Object.freeze({
   gateway: { disallowPromptTraining: true, only: ['typesafe-ai'] },
 });

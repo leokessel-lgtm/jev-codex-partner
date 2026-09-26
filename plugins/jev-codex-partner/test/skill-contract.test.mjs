@@ -34,4 +34,7 @@ test('references cover selection exclusions and governance boundaries', () => {
   assert.match(questions, /provider mechanics/i);
   assert.match(questions, /question examples/i);
   assert.match(questions, /bounded batch of independent questions/i);
+  assert.match(questions, /manual Boolean workaround/i);
+  assert.match(questions, /semantics differ from Choice/i);
+  assert.match(questions, /never automatically trigger another request/i);
 });

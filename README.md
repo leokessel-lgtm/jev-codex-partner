@@ -29,7 +29,7 @@ The plugin accepts a purpose, minimal state and one or more typed questions:
 
 - **Boolean:** a bounded true-or-false assessment with optional criteria.
 - **Choice:** selection among a finite set of labelled alternatives.
-- **Score:** an integer score against two to ten ordered rubric anchors.
+- **Score:** a numeric position against two to ten ordered rubric anchors, including fractional positions when returned by JEV.
 
 ## Suitability and Limitations
 
@@ -39,6 +39,8 @@ Use JEV for classification, routing and rubric assessment where typed probabilit
 - Private or sensitive payloads require action-time approval for the exact fields, destination and purpose.
 - The plugin requests zero-data-retention routing for private and sensitive payloads, but availability depends on current provider and plan support and is not a compliance guarantee.
 - Results are advisory only. They do not approve transactions, deployments, publications or other consequential actions.
+
+Successful evaluations report the plugin version, the JEV generation identifier and, when supplied by the gateway, a separate HTTP request identifier. These receipt fields support troubleshooting and provenance; they do not establish that the result is correct.
 
 ## Benchmarks
 

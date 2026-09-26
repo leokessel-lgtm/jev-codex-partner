@@ -7,13 +7,13 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { EVALUATE_TOOL } from './src/contracts.mjs';
+import { EVALUATE_TOOL, PLUGIN_VERSION } from './src/contracts.mjs';
 import { resolveApiKey } from './src/api-key.mjs';
 import { handleEvaluate } from './src/evaluate-handler.mjs';
 
 export function createServer(deps = {}) {
   const server = new Server(
-    { name: 'jev-codex-partner', version: '0.1.5' },
+    { name: 'jev-codex-partner', version: PLUGIN_VERSION },
     { capabilities: { tools: {} } },
   );
 

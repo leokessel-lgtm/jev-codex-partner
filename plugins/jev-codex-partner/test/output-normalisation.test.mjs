@@ -88,6 +88,7 @@ test('boolean, choice and score answers are strictly normalised with allow-liste
     provider: 'typesafe-ai',
     requestedModel: 'typesafe-ai/jev',
     resolvedModel: 'typesafe-ai/jev',
+    pluginVersion: '0.1.6',
     answers: {
       refunded: { type: 'boolean', probability: 0.98, confidence: 0.91 },
       outcome: {

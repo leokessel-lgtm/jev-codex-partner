@@ -1,4 +1,4 @@
-import { MODEL_ID } from './contracts.mjs';
+import { MODEL_ID, PLUGIN_VERSION } from './contracts.mjs';
 import { containsCredentialValue } from './error-sanitisation.mjs';
 
 const PROVIDER_ID = 'typesafe-ai';
@@ -52,6 +52,7 @@ function normalise(raw, context) {
     provider: PROVIDER_ID,
     requestedModel: MODEL_ID,
     resolvedModel: raw.model,
+    pluginVersion: PLUGIN_VERSION,
     answers,
     usage,
     cost,

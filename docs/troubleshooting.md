@@ -23,10 +23,16 @@ Repository access and JEV gateway authentication are separate checks. Cloning is
 
 ## Evaluation failures
 
-- `missing_api_key`: configure one of the authentication methods above.
-- `validation_error`: reduce the payload, remove credential-shaped content and check the typed question shape.
-- `provider_error`: inspect the sanitised status and request identifier; credentials are intentionally removed from surfaced errors.
+- `gateway_not_configured`: configure one of the authentication methods above.
+- `invalid_input`: reduce the payload, remove credential-shaped content and check the typed question shape.
+- `gateway_authentication_failed`: verify that the configured gateway credential is current and belongs to the intended account.
+- `gateway_zdr_unavailable`: the gateway explicitly reported that the account plan cannot satisfy the requested zero-data-retention route. Do not remove the private or sensitive classification to bypass this control. Use an eligible account or keep the data local.
+- `gateway_forbidden`: the gateway returned HTTP 403 without the recognised ZDR restriction. Inspect account access and policy without assuming the cause.
+- `gateway_request_rejected`: inspect the sanitised provider detail and typed payload shape.
+- `invalid_gateway_response`: retain the receipt fields and report the mismatch; do not reinterpret unvalidated provider output manually.
 - timeout or retry exhaustion: retry only when the request and authority are unchanged and the external cost is acceptable.
+
+On success, `requestId` is the JEV generation identifier. `gatewayRequestId`, when present, is the separate HTTP request identifier captured from the gateway response. `pluginVersion` identifies the adapter contract that normalised the result. Include these non-secret fields in a bug report, but never include the credential or private payload.
 
 ## Link Checking Failures
 
