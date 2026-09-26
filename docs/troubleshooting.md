@@ -17,7 +17,9 @@ The repository is public and does not require collaborator access. Confirm your 
 
 ## Installation Failures
 
-Verify you are using the exact installation commands documented in the [README.md](../README.md). Ensure the `--ref main` flag is included.
+Verify you are using the pinned clone and local-marketplace commands documented in the [README.md](../README.md). Confirm `plugins/jev-codex-partner/node_modules` exists after `npm ci --omit=dev`, and keep the checkout at the path registered with Codex.
+
+Do not substitute `codex plugin marketplace add leokessel-lgtm/jev-codex-partner --ref ...` for the documented clone flow. A Git-backed marketplace snapshot does not install this local Node MCP server's dependencies, so the server will fail to start with a missing-package error.
 
 Repository access and JEV gateway authentication are separate checks. Cloning is public, but evaluations still require your own gateway credential.
 

@@ -25,6 +25,13 @@ test('repository exposes the JEV plugin through its local marketplace', () => {
   assert.equal(plugin.policy.installation, 'AVAILABLE');
   assert.equal(plugin.policy.authentication, 'ON_USE');
   if (isShareableRepository) {
+    const readme = fs.readFileSync(path.join(repositoryRoot, 'README.md'), 'utf8');
+    const dependencyInstall = readme.indexOf('npm --prefix plugins/jev-codex-partner ci --omit=dev');
+    const marketplaceInstall = readme.indexOf('codex plugin marketplace add .');
+
+    assert.ok(dependencyInstall >= 0, 'public install must install runtime dependencies');
+    assert.ok(marketplaceInstall > dependencyInstall, 'dependencies must be installed before marketplace registration');
+    assert.doesNotMatch(readme, /plugin marketplace add leokessel-lgtm\/jev-codex-partner/u);
     for (const file of ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md']) {
       assert.equal(fs.existsSync(path.join(repositoryRoot, file)), true, `${file} is required`);
     }
