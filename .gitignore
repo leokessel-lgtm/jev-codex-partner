@@ -26,6 +26,7 @@ Thumbs.db
 
 # Local agent and build material
 .superpowers/
+.worktrees/
 .agent-collab/
 .codex/
 .gemini/
