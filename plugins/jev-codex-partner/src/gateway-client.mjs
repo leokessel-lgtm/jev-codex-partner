@@ -238,7 +238,8 @@ function gatewayError(fields) {
 }
 
 function createHttpError({ status, detail, providerRequestId, attempts, apiKey }) {
-  const safeDetail = detail ? `: ${safeText(detail, apiKey)}` : '';
+  const safeProviderDetail = detail ? safeText(detail, apiKey) : '';
+  const safeDetail = safeProviderDetail ? `: ${safeProviderDetail}` : '';
   if (status === 401) {
     return gatewayError({
       code: 'gateway_authentication_failed',
@@ -253,6 +254,20 @@ function createHttpError({ status, detail, providerRequestId, attempts, apiKey }
     return gatewayError({
       code: 'gateway_request_rejected',
       message: `AI Gateway rejected the evaluation (HTTP 422)${safeDetail}.`,
+      retryable: false,
+      status,
+      providerRequestId,
+      attempts,
+    });
+  }
+  if (status === 403) {
+    const isKnownZdrRestriction = /Zero Data Retention \(ZDR\) is only available for Pro and Enterprise plans/iu
+      .test(safeProviderDetail);
+    return gatewayError({
+      code: isKnownZdrRestriction ? 'gateway_zdr_unavailable' : 'gateway_forbidden',
+      message: isKnownZdrRestriction
+        ? `AI Gateway Zero Data Retention is unavailable for this account (HTTP 403)${safeDetail}.`
+        : `AI Gateway forbade the evaluation (HTTP 403)${safeDetail}.`,
       retryable: false,
       status,
       providerRequestId,

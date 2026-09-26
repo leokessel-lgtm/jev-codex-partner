@@ -20,7 +20,17 @@ The tool accepts only the fields defined in [`src/contracts.mjs`](../plugins/jev
 
 - **Boolean:** true or false, with optional definitions for both outcomes.
 - **Choice:** one label from two or more supplied alternatives.
-- **Score:** one integer position on a supplied ordered rubric.
+- **Score:** one numeric position on a supplied ordered rubric.
+
+## Observed gateway response contract
+
+On 26 September 2026, one explicitly authorised synthetic request sent Boolean, Choice and Score questions together through the raw `/v1/evaluate` endpoint. The response keyed each answer by the submitted question ID:
+
+- Boolean returned `probability`.
+- Choice returned the declared criterion key in `choice`, an object-valued `probabilities` distribution keyed by criterion, and optional `confidence`.
+- Score returned a fractional `score`, an object-valued `probabilities` distribution keyed by zero-based rubric index, and optional `confidence`.
+
+The plugin maps provider `choice` and `score` into its stable local `value` field and maps Score probability keys into rubric order. It continues to reject undeclared Choice keys, unexpected Score keys, invalid probability values and incomplete distributions. The de-identified observed structure is retained in [`jev-live-contract-v1.json`](../plugins/jev-codex-partner/test/fixtures/jev-live-contract-v1.json); volatile identifiers and timings are synthetic fixture values.
 
 ## Network Architecture
 

@@ -4,7 +4,7 @@ This package exposes one prompted `evaluate` MCP tool and a concise skill for de
 
 ## Local Source
 
-This private package is distributed through the repository marketplace manifest at [`../../.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json). It is marked private and must not be published to npm.
+This npm package is marked private and must not be published to npm. The source repository is public and distributes the plugin through the repository marketplace manifest at [`../../.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json).
 
 ## Development
 

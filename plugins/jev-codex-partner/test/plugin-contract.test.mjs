@@ -9,6 +9,7 @@ import {
   MAX_RESPONSE_BYTES,
   MAX_STATE_QUESTION_BYTES,
   MODEL_ID,
+  PLUGIN_VERSION,
   PROVIDER_OPTIONS,
   ZDR_PROVIDER_OPTIONS,
 } from '../src/contracts.mjs';
@@ -19,19 +20,19 @@ test('plugin and MCP configuration expose one prompted evaluator', () => {
   const packageLock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
   const mcp = JSON.parse(fs.readFileSync('.mcp.json', 'utf8'));
   assert.equal(plugin.name, 'jev-codex-partner');
-  assert.match(plugin.version, /^0\.1\.5\+codex\.\d{14}$/u);
-  assert.equal(packageJson.version, '0.1.5');
+  assert.match(plugin.version, /^0\.1\.6\+codex\.\d{14}$/u);
+  assert.equal(packageJson.version, '0.1.6');
   assert.equal(packageJson.private, true);
   assert.equal(
     packageJson.scripts['benchmark:live'],
     'node bin/run-evaluation.mjs benchmarks/synthetic-cases.json --live',
   );
   assert.match(
-    fs.readFileSync('../../README.md', 'utf8'),
+    fs.readFileSync('README.md', 'utf8'),
     /npm run benchmark:live -- --confirm-synthetic/u,
   );
-  assert.equal(packageLock.version, '0.1.5');
-  assert.equal(packageLock.packages[''].version, '0.1.5');
+  assert.equal(packageLock.version, '0.1.6');
+  assert.equal(packageLock.packages[''].version, '0.1.6');
   assert.equal(plugin.repository, 'https://github.com/leokessel-lgtm/jev-codex-partner');
   assert.equal(plugin.homepage, 'https://github.com/leokessel-lgtm/jev-codex-partner#readme');
   assert.equal(plugin.author.url, 'https://github.com/leokessel-lgtm');
@@ -53,6 +54,7 @@ test('plugin and MCP configuration expose one prompted evaluator', () => {
 test('shared evaluator contracts expose fixed routing, limits and typed questions', () => {
   assert.equal(GATEWAY_URL, 'https://ai-gateway.vercel.sh/v1/evaluate');
   assert.equal(MODEL_ID, 'typesafe-ai/jev');
+  assert.equal(PLUGIN_VERSION, '0.1.6');
   assert.deepEqual(PROVIDER_OPTIONS, {
     gateway: { disallowPromptTraining: true, only: ['typesafe-ai'] },
   });

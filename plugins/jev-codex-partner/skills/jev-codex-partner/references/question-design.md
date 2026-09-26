@@ -13,3 +13,7 @@ Ask one bounded question or a bounded batch of independent questions at a time. 
 - Score: “Using this supplied rubric from 0 to 4, how well does the proposal meet the stated safety criteria?”
 
 Briefly explain why the typed JEV evaluation fits before calling the tool. Treat the response as advisory-only and report only the reasoning or evidence actually returned by JEV. A probability is not a universal confidence threshold and does not replace human review.
+
+## Manual Boolean workaround
+
+If a Choice evaluation cannot be used and the decision can genuinely be reframed as one yes-or-no proposition, explain the proposed reframing and ask the user before making a fresh Boolean request. Its semantics differ from Choice: it estimates the truth of the new proposition rather than selecting among the original alternatives. Never automatically trigger another request after a failed or unsuitable Choice evaluation. Reuse no result as authority, preserve the transfer and billing disclosures, and validate the Boolean wording independently.

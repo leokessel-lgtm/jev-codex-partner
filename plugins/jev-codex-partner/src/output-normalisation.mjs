@@ -1,4 +1,4 @@
-import { MODEL_ID } from './contracts.mjs';
+import { MODEL_ID, PLUGIN_VERSION } from './contracts.mjs';
 import { containsCredentialValue } from './error-sanitisation.mjs';
 
 const PROVIDER_ID = 'typesafe-ai';
@@ -24,7 +24,8 @@ function normalise(raw, context) {
   if (raw.model !== MODEL_ID) throw invalid('model does not match the requested JEV model');
 
   const gateway = routingGateway(raw);
-  const answers = normaliseAnswers(raw.answers, context.questions);
+  const confidenceByQuestion = normaliseConfidenceMetadata(raw.providerMetadata.typesafe);
+  const answers = normaliseAnswers(raw.answers, context.questions, confidenceByQuestion);
   const usage = normaliseUsage(raw.usage);
   const cost = normaliseCost(gateway);
 
@@ -36,14 +37,29 @@ function normalise(raw, context) {
     throw invalid('generation ID is missing or unsafe');
   }
 
+  if (
+    context.gatewayRequestId !== undefined
+    && (
+      typeof context.gatewayRequestId !== 'string'
+      || !SAFE_GENERATION_ID.test(context.gatewayRequestId)
+      || containsCredentialValue(context.gatewayRequestId)
+    )
+  ) {
+    throw invalid('gateway request ID is unsafe');
+  }
+
   return {
     provider: PROVIDER_ID,
     requestedModel: MODEL_ID,
     resolvedModel: raw.model,
+    pluginVersion: PLUGIN_VERSION,
     answers,
     usage,
     cost,
     requestId: gateway.generationId,
+    ...(context.gatewayRequestId === undefined
+      ? {}
+      : { gatewayRequestId: context.gatewayRequestId }),
     durationMs: context.durationMs,
     attempts: context.attempts,
     dataClassification: context.dataClassification,
@@ -71,7 +87,7 @@ function routingGateway(raw) {
   return gateway;
 }
 
-function normaliseAnswers(rawAnswers, questions) {
+function normaliseAnswers(rawAnswers, questions, confidenceByQuestion) {
   requireRecord(rawAnswers, 'answers');
   const questionIds = Object.keys(questions);
   const answerIds = Object.keys(rawAnswers);
@@ -81,6 +97,9 @@ function normaliseAnswers(rawAnswers, questions) {
   const questionIdSet = new Set(questionIds);
   for (const answerId of answerIds) {
     if (!questionIdSet.has(answerId)) throw invalid('an answer ID was not requested');
+  }
+  for (const confidenceId of Object.keys(confidenceByQuestion)) {
+    if (!questionIdSet.has(confidenceId)) throw invalid('confidence was supplied for an unrequested question');
   }
 
   const result = {};
@@ -104,7 +123,11 @@ function normaliseAnswers(rawAnswers, questions) {
     } else {
       throw invalid('question type is unsupported');
     }
-    addConfidence(result[id], answer);
+    addConfidence(
+      result[id],
+      answer,
+      Object.hasOwn(confidenceByQuestion, id) ? confidenceByQuestion[id] : undefined,
+    );
   }
   return result;
 }
@@ -112,7 +135,7 @@ function normaliseAnswers(rawAnswers, questions) {
 function normaliseChoice(answer, question) {
   requireRecord(question.criteria, 'Choice criteria');
   const criteriaIds = Object.keys(question.criteria);
-  if (typeof answer.value !== 'string' || !Object.hasOwn(question.criteria, answer.value)) {
+  if (typeof answer.choice !== 'string' || !Object.hasOwn(question.criteria, answer.choice)) {
     throw invalid('Choice value is outside the criteria');
   }
 
@@ -129,37 +152,59 @@ function normaliseChoice(answer, question) {
     criteriaIds.map((id) => [id, probability(answer.probabilities[id])]),
   );
   requireDistribution(Object.values(probabilities));
-  return { type: 'choice', value: answer.value, probabilities };
+  return { type: 'choice', value: answer.choice, probabilities };
 }
 
 function normaliseScore(answer, question) {
   if (!Array.isArray(question.criteria)) throw invalid('Score criteria are invalid');
   if (
-    !Number.isInteger(answer.value)
-    || answer.value < 0
-    || answer.value >= question.criteria.length
+    !Number.isFinite(answer.score)
+    || answer.score < 0
+    || answer.score > question.criteria.length - 1
   ) {
     throw invalid('Score value is outside the criteria range');
   }
 
-  if (
-    !Array.isArray(answer.probabilities)
-    || answer.probabilities.length !== question.criteria.length
-  ) {
+  requireRecord(answer.probabilities, 'Score probabilities');
+  const expectedIds = question.criteria.map((_criterion, index) => String(index));
+  const probabilityIds = Object.keys(answer.probabilities);
+  if (probabilityIds.length !== expectedIds.length) {
     throw invalid('Score probabilities do not match the criteria');
   }
-  for (let index = 0; index < question.criteria.length; index += 1) {
-    if (!Object.hasOwn(answer.probabilities, index)) {
-      throw invalid('Score probabilities do not match the criteria');
-    }
+  for (const id of probabilityIds) {
+    if (!expectedIds.includes(id)) throw invalid('Score probabilities do not match the criteria');
   }
-  const probabilities = answer.probabilities.map(probability);
+  const probabilities = expectedIds.map((id) => probability(answer.probabilities[id]));
   requireDistribution(probabilities);
-  return { type: 'score', value: answer.value, probabilities };
+  return { type: 'score', value: answer.score, probabilities };
 }
 
-function addConfidence(output, answer) {
-  if (answer.confidence !== undefined) output.confidence = probability(answer.confidence);
+function normaliseConfidenceMetadata(typesafe) {
+  if (typesafe === undefined) return {};
+  requireRecord(typesafe, 'TypeSafe metadata');
+  if (typesafe.confidence === undefined) return {};
+  requireRecord(typesafe.confidence, 'TypeSafe confidence metadata');
+  return typesafe.confidence;
+}
+
+function addConfidence(output, answer, metadataConfidence) {
+  const answerConfidence = answer.confidence === undefined
+    ? undefined
+    : probability(answer.confidence);
+  const checkedMetadataConfidence = metadataConfidence === undefined
+    ? undefined
+    : probability(metadataConfidence);
+
+  if (
+    answerConfidence !== undefined
+    && checkedMetadataConfidence !== undefined
+    && answerConfidence !== checkedMetadataConfidence
+  ) {
+    throw invalid('answer confidence does not match TypeSafe metadata');
+  }
+
+  const confidence = answerConfidence ?? checkedMetadataConfidence;
+  if (confidence !== undefined) output.confidence = confidence;
 }
 
 function probability(value) {

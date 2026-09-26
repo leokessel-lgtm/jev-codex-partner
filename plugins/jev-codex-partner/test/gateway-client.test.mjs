@@ -172,6 +172,48 @@ for (const [status, code] of [
   });
 }
 
+test('generic 403 is classified as forbidden without retrying or claiming a ZDR cause', async () => {
+  let calls = 0;
+  const { client, delays } = clientWith({
+    fetchImpl: async () => {
+      calls += 1;
+      return response({ error: 'Access denied by account policy.' }, { status: 403 });
+    },
+  });
+
+  const error = await captureError(client.evaluate({ providerPayload: PROVIDER_PAYLOAD }));
+
+  assert.equal(calls, 1);
+  assert.deepEqual(delays, []);
+  assert.equal(error.code, 'gateway_forbidden');
+  assert.equal(error.status, 403);
+  assert.equal(error.retryable, false);
+  assert.equal(error.attempts, 1);
+  assert.doesNotMatch(error.message, /zero data retention|ZDR/iu);
+});
+
+test('known 403 ZDR plan restriction receives the specific non-retryable code', async () => {
+  let calls = 0;
+  const { client, delays } = clientWith({
+    fetchImpl: async () => {
+      calls += 1;
+      return response({
+        error: 'Zero Data Retention (ZDR) is only available for Pro and Enterprise plans. Current plan: hobby.',
+      }, { status: 403 });
+    },
+  });
+
+  const error = await captureError(client.evaluate({ providerPayload: PROVIDER_PAYLOAD }));
+
+  assert.equal(calls, 1);
+  assert.deepEqual(delays, []);
+  assert.equal(error.code, 'gateway_zdr_unavailable');
+  assert.equal(error.status, 403);
+  assert.equal(error.retryable, false);
+  assert.equal(error.attempts, 1);
+  assert.match(error.message, /zero data retention|ZDR/iu);
+});
+
 test('retryable network failure stays within three attempts', async () => {
   let calls = 0;
   const { client, delays } = clientWith({

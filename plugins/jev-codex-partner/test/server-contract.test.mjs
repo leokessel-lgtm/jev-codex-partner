@@ -50,6 +50,7 @@ const NORMALISED_EVALUATION = {
   provider: 'typesafe-ai',
   requestedModel: 'typesafe-ai/jev',
   resolvedModel: 'typesafe-ai/jev',
+  pluginVersion: '0.1.6',
   answers: {
     ready: { type: 'boolean', probability: 0.92 },
   },
@@ -61,6 +62,7 @@ const NORMALISED_EVALUATION = {
     gatewayCost: '0.000001',
   },
   requestId: 'gen_contract',
+  gatewayRequestId: 'gateway-request-123',
   durationMs: 17,
   attempts: 1,
   dataClassification: 'synthetic',
@@ -74,7 +76,12 @@ test('handler returns the stable success envelope after validation, gateway and 
     gatewayClient: {
       async evaluate(value) {
         request = value;
-        return { raw: RAW_RESPONSE, durationMs: 17, attempts: 1 };
+        return {
+          raw: RAW_RESPONSE,
+          durationMs: 17,
+          attempts: 1,
+          requestId: 'gateway-request-123',
+        };
       },
     },
   }, { signal });
@@ -91,6 +98,40 @@ test('handler returns the stable success envelope after validation, gateway and 
     signal,
   });
   assert.deepEqual(result, callResult({ ok: true, evaluation: NORMALISED_EVALUATION }));
+});
+
+test('handler accepts an Object.prototype question ID without inferred confidence metadata', async () => {
+  const input = {
+    ...VALID_INPUT,
+    questions: {
+      toString: { type: 'boolean', instructions: 'Is the evidence sufficient?' },
+    },
+  };
+  const raw = {
+    ...RAW_RESPONSE,
+    answers: {
+      toString: { type: 'boolean', probability: 0.92 },
+    },
+  };
+
+  const result = await handleEvaluate(input, {
+    gatewayClient: {
+      async evaluate() {
+        return {
+          raw,
+          durationMs: 17,
+          attempts: 1,
+          requestId: 'gateway-request-123',
+        };
+      },
+    },
+  }, {});
+
+  assert.equal(result.structuredContent.ok, true);
+  assert.deepEqual(result.structuredContent.evaluation.answers.toString, {
+    type: 'boolean',
+    probability: 0.92,
+  });
 });
 
 test('handler returns a stable validation failure without constructing or calling a gateway', async () => {
@@ -145,7 +186,12 @@ test('in-process MCP server lists only evaluate and passes the request signal to
     gatewayClient: {
       async evaluate({ signal }) {
         observedSignal = signal;
-        return { raw: RAW_RESPONSE, durationMs: 17, attempts: 1 };
+        return {
+          raw: RAW_RESPONSE,
+          durationMs: 17,
+          attempts: 1,
+          requestId: 'gateway-request-123',
+        };
       },
     },
   });
@@ -153,7 +199,7 @@ test('in-process MCP server lists only evaluate and passes the request signal to
 
   try {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
-    assert.equal(client.getServerVersion().version, '0.1.5');
+    assert.equal(client.getServerVersion().version, '0.1.6');
     const listing = await client.listTools();
     assert.equal(listing.tools.length, 1);
     assertToolContract(listing.tools[0]);
@@ -170,7 +216,7 @@ test('real stdio server lists and calls the mocked evaluate tool without a live 
   const fixture = createStdioFixture({ apiKey: 'stdio-contract-key' });
   try {
     await fixture.client.connect(fixture.transport);
-    assert.equal(fixture.client.getServerVersion().version, '0.1.5');
+    assert.equal(fixture.client.getServerVersion().version, '0.1.6');
     const listing = await fixture.client.listTools();
     assert.equal(listing.tools.length, 1);
     assertToolContract(listing.tools[0]);
@@ -280,7 +326,10 @@ function createStdioFixture({ apiKey } = {}) {
       }
       return new Response(JSON.stringify(raw), {
         status: 200,
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'gateway-request-123',
+        },
       });
     };
   `;
