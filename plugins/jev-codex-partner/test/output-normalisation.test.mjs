@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 import { normaliseGatewayResponse } from '../src/output-normalisation.mjs';
+
+const LIVE_CONTRACT = JSON.parse(fs.readFileSync(
+  new URL('./fixtures/jev-live-contract-v1.json', import.meta.url),
+  'utf8',
+));
 
 const QUESTIONS = {
   refunded: {
@@ -36,13 +42,13 @@ function validResponse(overrides = {}) {
       refunded: { type: 'boolean', probability: 0.98 },
       outcome: {
         type: 'choice',
-        value: 'proceed',
+        choice: 'proceed',
         probabilities: { proceed: 0.75, hold: 0.25 },
       },
       quality: {
         type: 'score',
-        value: 2,
-        probabilities: [0.01, 0.19, 0.8],
+        score: 1.8,
+        probabilities: { 0: 0.01, 1: 0.19, 2: 0.8 },
       },
     },
     usage: { inputTokens: 275, outputTokens: 20 },
@@ -91,7 +97,7 @@ test('boolean, choice and score answers are strictly normalised with allow-liste
       },
       quality: {
         type: 'score',
-        value: 2,
+        value: 1.8,
         probabilities: [0.01, 0.19, 0.8],
       },
     },
@@ -144,16 +150,18 @@ test('boolean, choice and score answer types must match their questions', () => 
 
 test('choice value must name one of the declared criteria', () => {
   const raw = validResponse();
-  raw.answers.outcome.value = 'unknown';
+  raw.answers.outcome.choice = 'unknown';
   rejects(raw);
 });
 
-test('score value must be an integer within the declared criteria range', () => {
-  for (const value of [-1, 1.5, 3, '2']) {
+test('score value must be finite and within the declared criteria range', () => {
+  for (const value of [-1, 2.01, Number.NaN, Number.POSITIVE_INFINITY, '2']) {
     const raw = validResponse();
-    raw.answers.quality.value = value;
+    raw.answers.quality.score = value;
     rejects(raw);
   }
+
+  assert.doesNotThrow(() => normaliseGatewayResponse(validResponse(), CONTEXT));
 });
 
 test('choice probability keys must exactly match the criteria', () => {
@@ -172,7 +180,7 @@ test('choice probability output preserves an own __proto__ criterion key', () =>
   const probabilities = JSON.parse('{"__proto__":0,"hold":1}');
   const raw = validResponse({
     answers: {
-      outcome: { type: 'choice', value: '__proto__', probabilities },
+      outcome: { type: 'choice', choice: '__proto__', probabilities },
     },
   });
   const context = {
@@ -193,19 +201,26 @@ test('choice probability output preserves an own __proto__ criterion key', () =>
   assert.equal(result.answers.outcome.probabilities.__proto__, 0);
 });
 
-test('score probability entries must exactly match the criteria count', () => {
-  for (const probabilities of [[0.2, 0.8], [0.1, 0.2, 0.3, 0.4]]) {
+test('score probability keys must exactly match the zero-based criteria indices', () => {
+  for (const probabilities of [
+    { 0: 0.2, 1: 0.8 },
+    { 0: 0.1, 1: 0.2, 2: 0.3, 3: 0.4 },
+    { 0: 0.1, 1: 0.2, two: 0.7 },
+  ]) {
     const raw = validResponse();
     raw.answers.quality.probabilities = probabilities;
     rejects(raw);
   }
 });
 
-test('score probability arrays reject sparse own-index coverage', () => {
+test('score probability output is ordered by rubric index regardless of provider key order', () => {
   const raw = validResponse();
-  raw.answers.quality.probabilities = [0.5, , 0.5];
+  raw.answers.quality.probabilities = { 2: 0.8, 0: 0.01, 1: 0.19 };
 
-  rejects(raw);
+  assert.deepEqual(
+    normaliseGatewayResponse(raw, CONTEXT).answers.quality.probabilities,
+    [0.01, 0.19, 0.8],
+  );
 });
 
 test('probability values and optional confidence must be finite numbers from zero to one', () => {
@@ -228,8 +243,8 @@ test('choice and score probability distributions must sum within 0.02 of one', (
   for (const [id, probabilities] of [
     ['outcome', { proceed: 0.7, hold: 0.27 }],
     ['outcome', { proceed: 0.8, hold: 0.23 }],
-    ['quality', [0.1, 0.2, 0.67]],
-    ['quality', [0.1, 0.2, 0.73]],
+    ['quality', { 0: 0.1, 1: 0.2, 2: 0.67 }],
+    ['quality', { 0: 0.1, 1: 0.2, 2: 0.73 }],
   ]) {
     const raw = validResponse();
     raw.answers[id].probabilities = probabilities;
@@ -244,6 +259,64 @@ test('choice and score probability distributions must sum within 0.02 of one', (
     raw.answers.outcome.probabilities = probabilities;
     assert.doesNotThrow(() => normaliseGatewayResponse(raw, CONTEXT));
   }
+});
+
+test('live probe fixture normalises Boolean, Choice and fractional Score answers', () => {
+  const context = {
+    questions: {
+      open: { type: 'boolean', instructions: 'Is the library open?' },
+      route: {
+        type: 'choice',
+        instructions: 'Which route serves North Pier?',
+        criteria: { A: 'North Pier', B: 'South Pier' },
+      },
+      comfort: {
+        type: 'score',
+        instructions: 'Rate walking comfort.',
+        criteria: ['Very poor', 'Poor', 'Fair', 'Good', 'Excellent'],
+      },
+    },
+    durationMs: 127,
+    attempts: 1,
+    dataClassification: 'synthetic',
+  };
+
+  const result = normaliseGatewayResponse(structuredClone(LIVE_CONTRACT), context);
+
+  assert.deepEqual(result.answers, {
+    open: { type: 'boolean', probability: 0.98 },
+    route: {
+      type: 'choice',
+      value: 'A',
+      probabilities: { A: 1, B: 0 },
+      confidence: 1,
+    },
+    comfort: {
+      type: 'score',
+      value: 3.94,
+      probabilities: [0, 0, 0, 0.06, 0.94],
+      confidence: 0.95,
+    },
+  });
+  assert.equal(result.requestId, 'gen_fixture');
+});
+
+test('TypeSafe metadata supplies optional confidence when the answer omits it', () => {
+  const raw = validResponse();
+  delete raw.answers.outcome.confidence;
+  raw.providerMetadata.typesafe = { confidence: { outcome: 0.73 } };
+
+  const result = normaliseGatewayResponse(raw, CONTEXT);
+
+  assert.equal(result.answers.outcome.confidence, 0.73);
+});
+
+test('answer and TypeSafe metadata confidence must agree when both are present', () => {
+  const raw = validResponse();
+  raw.answers.outcome.confidence = 0.75;
+  raw.providerMetadata.typesafe = { confidence: { outcome: 0.74 } };
+
+  rejects(raw);
 });
 
 test('usage token counts must be non-negative finite integers', () => {

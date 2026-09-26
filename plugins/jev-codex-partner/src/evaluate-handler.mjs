@@ -17,6 +17,7 @@ export async function handleEvaluate(raw, deps = {}, { signal } = {}) {
       durationMs: response.durationMs,
       attempts: response.attempts,
       dataClassification: checked.value.data_classification,
+      gatewayRequestId: response.requestId,
     });
     return success(evaluation);
   } catch (error) {

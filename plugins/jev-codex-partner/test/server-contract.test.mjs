@@ -61,6 +61,7 @@ const NORMALISED_EVALUATION = {
     gatewayCost: '0.000001',
   },
   requestId: 'gen_contract',
+  gatewayRequestId: 'gateway-request-123',
   durationMs: 17,
   attempts: 1,
   dataClassification: 'synthetic',
@@ -74,7 +75,12 @@ test('handler returns the stable success envelope after validation, gateway and 
     gatewayClient: {
       async evaluate(value) {
         request = value;
-        return { raw: RAW_RESPONSE, durationMs: 17, attempts: 1 };
+        return {
+          raw: RAW_RESPONSE,
+          durationMs: 17,
+          attempts: 1,
+          requestId: 'gateway-request-123',
+        };
       },
     },
   }, { signal });
@@ -145,7 +151,12 @@ test('in-process MCP server lists only evaluate and passes the request signal to
     gatewayClient: {
       async evaluate({ signal }) {
         observedSignal = signal;
-        return { raw: RAW_RESPONSE, durationMs: 17, attempts: 1 };
+        return {
+          raw: RAW_RESPONSE,
+          durationMs: 17,
+          attempts: 1,
+          requestId: 'gateway-request-123',
+        };
       },
     },
   });
@@ -280,7 +291,10 @@ function createStdioFixture({ apiKey } = {}) {
       }
       return new Response(JSON.stringify(raw), {
         status: 200,
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'gateway-request-123',
+        },
       });
     };
   `;

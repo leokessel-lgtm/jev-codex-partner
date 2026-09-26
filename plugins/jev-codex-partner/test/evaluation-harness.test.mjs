@@ -174,8 +174,8 @@ test('confirmed live mode sends each synthetic fixture exactly once through the 
       const answer = question.type === 'boolean'
         ? { type: 'boolean', probability: 0.9 }
         : question.type === 'choice'
-          ? { type: 'choice', value: 'A', probabilities: { A: 0.9, B: 0.1 } }
-          : { type: 'score', value: 4, probabilities: [0.01, 0.01, 0.03, 0.05, 0.9] };
+          ? { type: 'choice', choice: 'A', probabilities: { A: 0.9, B: 0.1 } }
+          : { type: 'score', score: 4, probabilities: { 0: 0.01, 1: 0.01, 2: 0.03, 3: 0.05, 4: 0.9 } };
       return {
         raw: {
           model: 'typesafe-ai/jev',
@@ -227,8 +227,8 @@ test('live CLI prints the complete stable metrics object without payload state o
       const answer = question.type === 'boolean'
         ? { type: 'boolean', probability: 0.9 }
         : question.type === 'choice'
-          ? { type: 'choice', value: 'A', probabilities: { A: 0.9, B: 0.1 } }
-          : { type: 'score', value: 4, probabilities: [0.01, 0.01, 0.03, 0.05, 0.9] };
+          ? { type: 'choice', choice: 'A', probabilities: { A: 0.9, B: 0.1 } }
+          : { type: 'score', score: 4, probabilities: { 0: 0.01, 1: 0.01, 2: 0.03, 3: 0.05, 4: 0.9 } };
       return new Response(JSON.stringify({
         model: 'typesafe-ai/jev',
         answers: { [questionId]: answer },
