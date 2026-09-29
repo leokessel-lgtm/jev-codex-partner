@@ -10,6 +10,14 @@ Classify each payload as `synthetic`, `public`, `private` or `sensitive`. Synthe
 
 Always minimise the state. Exclude credentials, tokens, passwords, MFA or CAPTCHA material, session identifiers and unrelated personal information.
 
+## Optional local ledger
+
+The ledger is disabled unless the operator configures `JEV_OUTCOME_LEDGER_DIR`; each evaluation must still explicitly opt in. It stores privacy-minimised aggregate telemetry, not raw state, prompts, question text, semantic labels, amounts or credentials. Optional correlation identifiers must be opaque and non-descriptive.
+
+`record_outcome` accepts only a prior record UUID and enumerated action, override and outcome values. It is prompted because it changes local state. Do not record an outcome automatically or before it is adequately evidenced.
+
+Owner-only permissions, target checks, daily UTC files, 30-day retention and the pre-append size limit reduce local exposure but do not turn telemetry into evidence of correctness. Keep source evidence, JEV output, ledger telemetry and human decisions distinct.
+
 ## Limitations
 
 - Results are advisory and remain separate from source evidence and the human decision.

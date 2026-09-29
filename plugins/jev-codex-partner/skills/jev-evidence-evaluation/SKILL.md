@@ -24,6 +24,8 @@ Use this skill automatically for a bounded claim-to-evidence support check, cita
 
 State the relevant acceptance criterion. Ask one proposition, or a bounded batch of independent propositions, and preserve the returned probability and provider receipt fields.
 
+Request ledger recording only when the operator has enabled it and calibration is relevant. Do not automatically record a later outcome; require an adequately evidenced outcome and the user's approval for that prompted local mutation.
+
 ## Exclusions and authority
 
 Do not use this skill for generation, research, arithmetic, counting, dates, planning, current facts, deterministic checks, open-ended interpretation or consequential approvals. Use ordinary code or primary-source verification where that is more reliable.

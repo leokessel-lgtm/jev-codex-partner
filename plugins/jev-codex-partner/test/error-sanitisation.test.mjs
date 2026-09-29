@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { sanitiseText } from '../src/error-sanitisation.mjs';
+import { handleEvaluate } from '../src/evaluate-handler.mjs';
 
 const structuredCredentials = [
   ['Bear', 'er ', 'abcdefghijklmnopqrstuvwxyz012345'].join(''),
@@ -128,4 +129,64 @@ test('redact removes provider-prefixed textual credential assignments', () => {
 test('redact preserves ordinary prose about token fields and credential policy', () => {
   const input = 'A session token field and client secret rotation policy are documented without values.';
   assert.equal(sanitiseText(input), input);
+});
+
+test('ledger errors never expose path, state or credential sentinels', async () => {
+  const sentinels = [
+    '/private/ledger/path',
+    'UNIQUE_STATE_SENTINEL',
+    ['Bear', 'er ', 'uniquecredential0123456789'].join(''),
+  ];
+  const result = await handleEvaluate({
+    purpose: 'Evaluate a synthetic release.',
+    state: { value: sentinels[1] },
+    questions: { ready: { type: 'boolean', instructions: 'Is it ready?' } },
+    data_classification: 'synthetic',
+    sensitive_transfer_approved: false,
+    ledger: { record: true },
+  }, {
+    gatewayClient: {
+      async evaluate() {
+        return {
+          raw: {
+            model: 'typesafe-ai/jev',
+            answers: { ready: { type: 'boolean', probability: 0.8 } },
+            usage: { inputTokens: 10, outputTokens: 2 },
+            providerMetadata: {
+              gateway: {
+                routing: {
+                  originalModelId: 'typesafe-ai/jev',
+                  resolvedProvider: 'typesafe-ai',
+                  canonicalSlug: 'typesafe-ai/jev',
+                  finalProvider: 'typesafe-ai',
+                },
+                cost: '0.000001',
+                marketCost: '0.000001',
+                surchargeCost: '0',
+                gatewayCost: '0.000001',
+                generationId: 'gen_ledger_error',
+              },
+            },
+          },
+          durationMs: 8,
+          attempts: 1,
+          requestId: 'gateway-ledger-error',
+        };
+      },
+    },
+    outcomeLedger: {
+      async recordEvaluation() {
+        throw new Error(sentinels.join(' '));
+      },
+    },
+  });
+
+  assert.equal(result.structuredContent.ok, true);
+  assert.equal(result.isError, undefined);
+  assert.deepEqual(result.structuredContent.ledger, {
+    status: 'not_recorded',
+    reason: 'disabled_or_unavailable',
+  });
+  const serialised = JSON.stringify(result);
+  for (const sentinel of sentinels) assert.equal(serialised.includes(sentinel), false);
 });

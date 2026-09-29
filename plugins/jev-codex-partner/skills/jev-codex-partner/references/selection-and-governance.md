@@ -16,3 +16,11 @@ Do not select it for generation, open-ended research, maths or arithmetic, count
 - Do not apply a universal confidence threshold. Explain uncertainty and use the context-specific human review gate instead.
 
 Codex should state why JEV fits before calling it, preserve the returned alternatives/probabilities or score, and avoid inventing reasoning that the partner did not return.
+
+## Optional outcome ledger
+
+The ledger is opt-in and available only when the operator has configured `JEV_OUTCOME_LEDGER_DIR`. Request evaluation recording only when calibration is relevant and the operator has enabled that directory. Do not infer activation, silently add descriptive correlation data or include raw state, prompts, question text, semantic labels, amounts or credentials. Use an opaque correlation ID or omit it.
+
+There is no automatic outcome recording. Call `record_outcome` only after the user has an adequately evidenced outcome and authorises that prompted local mutation. Store only the schema's enumerated action, override and outcome values.
+
+Keep source evidence, JEV output, ledger telemetry and the human decision distinct. Telemetry does not prove correctness, approval, compliance, business impact or authority.

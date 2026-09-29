@@ -19,14 +19,25 @@ export async function handleEvaluate(raw, deps = {}, { signal } = {}) {
       dataClassification: checked.value.data_classification,
       gatewayRequestId: response.requestId,
     });
-    return success(evaluation);
+    if (checked.value.ledger?.record !== true) return success(evaluation);
+    const ledger = await recordEvaluation(deps.outcomeLedger, checked.value, evaluation);
+    return success(evaluation, ledger);
   } catch (error) {
     return failureFrom(error);
   }
 }
 
-function success(evaluation) {
-  return result({ ok: true, evaluation });
+async function recordEvaluation(outcomeLedger, input, evaluation) {
+  try {
+    if (typeof outcomeLedger?.recordEvaluation !== 'function') throw new Error('Ledger unavailable');
+    return await outcomeLedger.recordEvaluation({ input, evaluation });
+  } catch {
+    return { status: 'not_recorded', reason: 'disabled_or_unavailable' };
+  }
+}
+
+function success(evaluation, ledger) {
+  return result({ ok: true, evaluation, ...(ledger === undefined ? {} : { ledger }) });
 }
 
 function failure(code, message, retryable, optional = {}) {

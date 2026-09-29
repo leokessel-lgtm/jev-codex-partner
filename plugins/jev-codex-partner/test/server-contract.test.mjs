@@ -11,6 +11,7 @@ import {
 } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { handleEvaluate } from '../src/evaluate-handler.mjs';
+import { createOutcomeLedger } from '../src/outcome-ledger.mjs';
 import { createServer } from '../server.mjs';
 
 const REPOSITORY_ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -50,7 +51,7 @@ const NORMALISED_EVALUATION = {
   provider: 'typesafe-ai',
   requestedModel: 'typesafe-ai/jev',
   resolvedModel: 'typesafe-ai/jev',
-  pluginVersion: '0.1.8',
+  pluginVersion: '0.1.9',
   answers: {
     ready: { type: 'boolean', probability: 0.92 },
   },
@@ -98,6 +99,77 @@ test('handler returns the stable success envelope after validation, gateway and 
     signal,
   });
   assert.deepEqual(result, callResult({ ok: true, evaluation: NORMALISED_EVALUATION }));
+});
+
+test('handler makes zero ledger calls without explicit opt-in', async () => {
+  let ledgerCalls = 0;
+  const result = await handleEvaluate(VALID_INPUT, {
+    gatewayClient: successfulGateway(),
+    outcomeLedger: {
+      async recordEvaluation() {
+        ledgerCalls += 1;
+        return { status: 'recorded', recordId: 'must-not-appear' };
+      },
+    },
+  });
+
+  assert.equal(ledgerCalls, 0);
+  assert.deepEqual(result, callResult({ ok: true, evaluation: NORMALISED_EVALUATION }));
+});
+
+test('handler records only after successful normalisation', async () => {
+  let ledgerCalls = 0;
+  const result = await handleEvaluate({ ...VALID_INPUT, ledger: { record: true } }, {
+    gatewayClient: successfulGateway({ ...RAW_RESPONSE, answers: {} }),
+    outcomeLedger: {
+      async recordEvaluation() {
+        ledgerCalls += 1;
+        return { status: 'recorded', recordId: 'must-not-appear' };
+      },
+    },
+  });
+
+  assert.equal(ledgerCalls, 0);
+  assert.equal(result.isError, true);
+  assert.equal(result.structuredContent.ok, false);
+});
+
+test('handler returns record ID after a successful ledger append', async () => {
+  let recorded;
+  const input = { ...VALID_INPUT, ledger: { record: true, correlation_id: 'pilot-01' } };
+  const result = await handleEvaluate(input, {
+    gatewayClient: successfulGateway(),
+    outcomeLedger: {
+      async recordEvaluation(value) {
+        recorded = value;
+        return { status: 'recorded', recordId: '123e4567-e89b-42d3-a456-426614174000' };
+      },
+    },
+  });
+
+  assert.deepEqual(recorded, { input, evaluation: NORMALISED_EVALUATION });
+  assert.deepEqual(result, callResult({
+    ok: true,
+    evaluation: NORMALISED_EVALUATION,
+    ledger: { status: 'recorded', recordId: '123e4567-e89b-42d3-a456-426614174000' },
+  }));
+});
+
+test('ledger rejection preserves ok evaluation and returns generic not_recorded status', async () => {
+  const result = await handleEvaluate({ ...VALID_INPUT, ledger: { record: true } }, {
+    gatewayClient: successfulGateway(),
+    outcomeLedger: {
+      async recordEvaluation() {
+        return { status: 'not_recorded', reason: 'disabled_or_unavailable' };
+      },
+    },
+  });
+
+  assert.deepEqual(result, callResult({
+    ok: true,
+    evaluation: NORMALISED_EVALUATION,
+    ledger: { status: 'not_recorded', reason: 'disabled_or_unavailable' },
+  }));
 });
 
 test('handler accepts an Object.prototype question ID without inferred confidence metadata', async () => {
@@ -179,7 +251,7 @@ test('handler returns a stable missing-key failure before fetch', async () => {
   }, true));
 });
 
-test('in-process MCP server lists only evaluate and passes the request signal to the handler', async () => {
+test('server lists evaluate and record_outcome with truthful annotations', async () => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   let observedSignal;
   const server = createServer({
@@ -199,10 +271,15 @@ test('in-process MCP server lists only evaluate and passes the request signal to
 
   try {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
-    assert.equal(client.getServerVersion().version, '0.1.8');
+    assert.equal(client.getServerVersion().version, '0.1.9');
     const listing = await client.listTools();
-    assert.equal(listing.tools.length, 1);
-    assertToolContract(listing.tools[0]);
+    assert.deepEqual(listing.tools.map(({ name }) => name), ['evaluate', 'record_outcome']);
+    assertEvaluateToolContract(listing.tools[0]);
+    assert.deepEqual(listing.tools[1].annotations, {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    });
 
     const result = await client.callTool({ name: 'evaluate', arguments: VALID_INPUT });
     assert.deepEqual(result, callResult({ ok: true, evaluation: NORMALISED_EVALUATION }));
@@ -212,14 +289,104 @@ test('in-process MCP server lists only evaluate and passes the request signal to
   }
 });
 
+test('record_outcome rejects invalid input before filesystem access', async () => {
+  let ledgerCalls = 0;
+  const fixture = await createInMemoryClient({
+    outcomeLedger: {
+      async recordOutcome() {
+        ledgerCalls += 1;
+        throw new Error('must not be called');
+      },
+    },
+  });
+  try {
+    const result = await fixture.client.callTool({
+      name: 'record_outcome',
+      arguments: { record_id: 'invalid', action: 'followed', override: false, outcome: 'correct' },
+    });
+    assert.equal(result.isError, true);
+    assert.equal(result.structuredContent.error.code, 'invalid_input');
+    assert.equal(ledgerCalls, 0);
+  } finally {
+    await fixture.client.close();
+  }
+});
+
+test('record_outcome appends locally with zero fetch calls', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'jev-outcome-tool-'));
+  fs.chmodSync(directory, 0o700);
+  let fetchCalls = 0;
+  const fixture = await createInMemoryClient({
+    gatewayClient: {
+      async evaluate() {
+        fetchCalls += 1;
+        throw new Error('must not be called');
+      },
+    },
+    outcomeLedger: createOutcomeLedger({
+      directory,
+      now: () => new Date('2026-09-30T12:00:00.000Z'),
+      randomUUID: () => '123e4567-e89b-42d3-a456-426614174001',
+    }),
+  });
+  try {
+    const result = await fixture.client.callTool({
+      name: 'record_outcome',
+      arguments: {
+        record_id: '123e4567-e89b-42d3-a456-426614174000',
+        action: 'followed',
+        override: false,
+        outcome: 'correct',
+      },
+    });
+    assert.deepEqual(result, callResult({
+      ok: true,
+      outcome: { status: 'recorded', eventId: '123e4567-e89b-42d3-a456-426614174001' },
+    }));
+    assert.equal(fetchCalls, 0);
+    const events = fs.readFileSync(path.join(directory, 'outcomes-2026-09-30.jsonl'), 'utf8');
+    assert.equal(JSON.parse(events).recordType, 'outcome');
+  } finally {
+    await fixture.client.close();
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('disabled outcome ledger returns stable local error', async () => {
+  const fixture = await createInMemoryClient({
+    outcomeLedger: createOutcomeLedger(),
+  });
+  try {
+    const result = await fixture.client.callTool({
+      name: 'record_outcome',
+      arguments: {
+        record_id: '123e4567-e89b-42d3-a456-426614174000',
+        action: 'no_action',
+        override: false,
+        outcome: 'unknown',
+      },
+    });
+    assert.deepEqual(result, callResult({
+      ok: false,
+      error: {
+        code: 'ledger_unavailable',
+        message: 'Outcome ledger is disabled or unavailable.',
+        retryable: false,
+      },
+    }, true));
+  } finally {
+    await fixture.client.close();
+  }
+});
+
 test('real stdio server lists and calls the mocked evaluate tool without a live request', async () => {
   const fixture = createStdioFixture({ apiKey: 'stdio-contract-key' });
   try {
     await fixture.client.connect(fixture.transport);
-    assert.equal(fixture.client.getServerVersion().version, '0.1.8');
+    assert.equal(fixture.client.getServerVersion().version, '0.1.9');
     const listing = await fixture.client.listTools();
-    assert.equal(listing.tools.length, 1);
-    assertToolContract(listing.tools[0]);
+    assert.equal(listing.tools.length, 2);
+    assertEvaluateToolContract(listing.tools[0]);
 
     const result = await fixture.client.callTool({ name: 'evaluate', arguments: VALID_INPUT });
     assert.ok(Number.isInteger(result.structuredContent.evaluation.durationMs));
@@ -278,11 +445,15 @@ test('real stdio request cancellation reaches the mocked fetch signal', async ()
   }
 });
 
-test('MCP configuration exposes only prompted jev_partner.evaluate', () => {
+test('MCP configuration passes ledger directory and prompts both mutating tools', () => {
   const config = JSON.parse(fs.readFileSync(path.join(REPOSITORY_ROOT, '.mcp.json'), 'utf8'));
   assert.deepEqual(Object.keys(config.mcpServers), ['jev_partner']);
-  assert.deepEqual(Object.keys(config.mcpServers.jev_partner.tools), ['evaluate']);
+  assert.deepEqual(config.mcpServers.jev_partner.env_vars, [
+    'AI_GATEWAY_API_KEY', 'JEV_OUTCOME_LEDGER_DIR',
+  ]);
+  assert.deepEqual(Object.keys(config.mcpServers.jev_partner.tools), ['evaluate', 'record_outcome']);
   assert.equal(config.mcpServers.jev_partner.tools.evaluate.approval_mode, 'prompt');
+  assert.equal(config.mcpServers.jev_partner.tools.record_outcome.approval_mode, 'prompt');
 });
 
 function callResult(envelope, isError = false) {
@@ -294,14 +465,35 @@ function callResult(envelope, isError = false) {
   return result;
 }
 
-function assertToolContract(tool) {
+function successfulGateway(raw = RAW_RESPONSE) {
+  return {
+    async evaluate() {
+      return {
+        raw,
+        durationMs: 17,
+        attempts: 1,
+        requestId: 'gateway-request-123',
+      };
+    },
+  };
+}
+
+function assertEvaluateToolContract(tool) {
   assert.equal(tool.name, 'evaluate');
   assert.deepEqual(tool.annotations, {
-    readOnlyHint: true,
+    readOnlyHint: false,
     destructiveHint: false,
     openWorldHint: true,
   });
   assert.equal('idempotentHint' in tool.annotations, false);
+}
+
+async function createInMemoryClient(deps) {
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const server = createServer(deps);
+  const client = new Client({ name: 'jev-outcome-contract-test', version: '1.0.0' });
+  await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+  return { client };
 }
 
 function createStdioFixture({ apiKey } = {}) {

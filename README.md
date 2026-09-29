@@ -1,6 +1,6 @@
 # JEV Codex Partner Marketplace
 
-Public, repo-local Codex marketplace for governed TypeSafe JEV evaluations. It adds one prompted MCP tool for bounded Boolean, Choice and Score judgements.
+Public, repo-local Codex marketplace for governed TypeSafe JEV evaluations. It adds a prompted evaluator for bounded Boolean, Choice and Score judgements, plus prompted local-only outcome recording when the optional privacy-safe ledger is enabled.
 
 The repository is intentionally unlicensed. Public visibility permits inspection and cloning but does not grant a general right to copy, redistribute, publish or create derivative works from the code.
 
@@ -15,7 +15,7 @@ The repository is intentionally unlicensed. Public visibility permits inspection
 Clone the pinned release, install the local MCP server dependencies, then add the checked-out marketplace:
 
 ```bash
-git clone --branch v0.1.8 --depth 1 https://github.com/leokessel-lgtm/jev-codex-partner.git
+git clone --branch v0.1.9 --depth 1 https://github.com/leokessel-lgtm/jev-codex-partner.git
 cd jev-codex-partner
 npm --prefix plugins/jev-codex-partner ci --omit=dev
 codex plugin marketplace add .
@@ -37,6 +37,14 @@ The plugin accepts a purpose, minimal state and one or more typed questions:
 - **Score:** a numeric position against two to ten ordered rubric anchors, including fractional positions when returned by JEV.
 
 The `jev-evidence-evaluation` skill adds focused automatic discovery for three Boolean-only uses: claim-to-evidence support, citation support and semantic equivalence. It may automatically send only deterministically public or synthetic supplied text, after a brief visible notice. Workspace-derived or ambiguous-provenance content is private by default and requires exact-transfer approval. `no JEV` and `local only` suppress the external call.
+
+### Optional privacy-safe outcome ledger
+
+Set `JEV_OUTCOME_LEDGER_DIR` in the environment that launches Codex, then restart the JEV MCP process. Leaving it absent or empty keeps the ledger disabled. Recording an evaluation also requires the validated input to include `"ledger": { "record": true }`; an optional correlation ID must be opaque and non-descriptive.
+
+The ledger stores only allow-listed aggregate metadata in owner-only daily JSONL files. It never stores raw state, prompts, question text, semantic labels or credentials. Files retain 30 UTC days including the current day, and an append is refused when the current file is already 5,000,000 bytes. `record_outcome` is local-only, prompted and accepts no free-form text.
+
+Keep source evidence, JEV output, ledger telemetry and the human decision separate. Telemetry does not prove correctness, approval, compliance or business impact.
 
 ## Suitability and Limitations
 

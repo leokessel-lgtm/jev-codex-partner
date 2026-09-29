@@ -39,6 +39,16 @@ test('references cover selection exclusions and governance boundaries', () => {
   assert.match(questions, /manual Boolean workaround/i);
   assert.match(questions, /semantics differ from Choice/i);
   assert.match(questions, /never automatically trigger another request/i);
+  for (const phrase of [
+    'JEV_OUTCOME_LEDGER_DIR',
+    'opt-in',
+    'raw state',
+    'descriptive correlation data',
+    'source evidence',
+    'ledger telemetry',
+    'human decision',
+    'no automatic outcome recording',
+  ]) assert.match(selection, new RegExp(phrase, 'i'), `missing ledger governance: ${phrase}`);
 });
 
 test('evidence evaluation skill is Boolean-only, discoverable and fail-closed', () => {
@@ -74,6 +84,8 @@ test('evidence evaluation skill is Boolean-only, discoverable and fail-closed', 
   assert.match(skill, /JEV fits this evidence check\. An external, potentially billable TypeSafe JEV evaluation will run through Vercel AI Gateway\./u);
   assert.match(skill, /publicly accessible without authentication/u);
   assert.match(skill, /Pasted, paraphrased or workspace-summarised text is ambiguous unless its public provenance is established/u);
+  assert.match(skill, /ledger recording.*only.*operator.*enabled/i);
+  assert.match(skill, /do not automatically record.*outcome/i);
 
   assert.doesNotMatch(skill, /TODO|FIXME|TBD|<SCaffold|\[\[.*?\]\]/i);
 });

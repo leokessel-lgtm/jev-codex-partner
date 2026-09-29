@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MODEL_ID, PROVIDER_OPTIONS } from '../src/contracts.mjs';
-import { findCredentialPath, validateEvaluateInput } from '../src/input-validation.mjs';
+import {
+  findCredentialPath,
+  validateEvaluateInput,
+  validateRecordOutcomeInput,
+} from '../src/input-validation.mjs';
 
 function validInput(overrides = {}) {
   const input = {
@@ -178,6 +182,57 @@ test('provider payload contains only governed provider fields', () => {
     'request_metadata',
   ]) {
     assert.equal(Object.hasOwn(result.providerPayload, excluded), false);
+  }
+});
+
+test('evaluation ledger opt-in accepts only literal true and an opaque correlation ID', () => {
+  for (const correlation_id of ['A', 'request-123', 'opaque.id:4_value']) {
+    const result = validateEvaluateInput(cleanOverrides(validInput({
+      ledger: { record: true, correlation_id },
+    })));
+    assert.equal(result.ok, true);
+  }
+
+  for (const correlation_id of ['', 'two words', 'slash/id', 'back\\slash', 'ümlaut', `a${'b'.repeat(128)}`]) {
+    const result = validateEvaluateInput(cleanOverrides(validInput({
+      ledger: { record: true, correlation_id },
+    })));
+    assert.equal(result.ok, false);
+  }
+
+  for (const ledger of [{ record: false }, { record: 'true' }, { record: true, extra: true }]) {
+    assert.equal(validateEvaluateInput(cleanOverrides(validInput({ ledger }))).ok, false);
+  }
+});
+
+test('evaluation ledger input is excluded from the provider payload', () => {
+  const raw = cleanOverrides(validInput({
+    ledger: { record: true, correlation_id: 'opaque-123' },
+  }));
+  const result = validateEvaluateInput(raw);
+  assert.equal(result.ok, true);
+  assert.equal(Object.hasOwn(result.providerPayload, 'ledger'), false);
+  assert.deepEqual(result.providerPayload, providerPayloadFor(raw));
+});
+
+test('record_outcome schema rejects extra fields and contradictory overrides', () => {
+  const accepted = [
+    { record_id: '123e4567-e89b-42d3-a456-426614174000', action: 'overridden', override: true, outcome: 'incorrect' },
+    { record_id: '123e4567-e89b-42d3-a456-426614174000', action: 'followed', override: false, outcome: 'correct' },
+    { record_id: '123e4567-e89b-42d3-a456-426614174000', action: 'deferred', override: false, outcome: 'unknown' },
+    { record_id: '123e4567-e89b-42d3-a456-426614174000', action: 'no_action', override: false, outcome: 'mixed' },
+  ];
+  for (const input of accepted) assert.equal(validateRecordOutcomeInput(input).ok, true);
+
+  for (const input of [
+    { ...accepted[0], extra: true },
+    { ...accepted[0], override: false },
+    { ...accepted[1], override: true },
+    { ...accepted[1], record_id: 'not a uuid' },
+    { ...accepted[1], action: 'published' },
+    { ...accepted[1], outcome: 'excellent' },
+  ]) {
+    assert.equal(validateRecordOutcomeInput(input).ok, false);
   }
 });
 

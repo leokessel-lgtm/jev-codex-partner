@@ -7,9 +7,11 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { EVALUATE_TOOL, PLUGIN_VERSION } from './src/contracts.mjs';
+import { EVALUATE_TOOL, PLUGIN_VERSION, RECORD_OUTCOME_TOOL } from './src/contracts.mjs';
 import { resolveApiKey } from './src/api-key.mjs';
 import { handleEvaluate } from './src/evaluate-handler.mjs';
+import { handleRecordOutcome } from './src/outcome-handler.mjs';
+import { createOutcomeLedger } from './src/outcome-ledger.mjs';
 
 export function createServer(deps = {}) {
   const server = new Server(
@@ -18,20 +20,26 @@ export function createServer(deps = {}) {
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: [EVALUATE_TOOL],
+    tools: [EVALUATE_TOOL, RECORD_OUTCOME_TOOL],
   }));
   server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
-    if (request.params.name !== EVALUATE_TOOL.name) {
-      throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${request.params.name}`);
+    if (request.params.name === EVALUATE_TOOL.name) {
+      return handleEvaluate(request.params.arguments, deps, { signal: extra.signal });
     }
-    return handleEvaluate(request.params.arguments, deps, { signal: extra.signal });
+    if (request.params.name === RECORD_OUTCOME_TOOL.name) {
+      return handleRecordOutcome(request.params.arguments, deps);
+    }
+    throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${request.params.name}`);
   });
 
   return server;
 }
 
 async function main() {
-  const server = createServer({ apiKey: resolveApiKey() });
+  const server = createServer({
+    apiKey: resolveApiKey(),
+    outcomeLedger: createOutcomeLedger({ directory: process.env.JEV_OUTCOME_LEDGER_DIR }),
+  });
   await server.connect(new StdioServerTransport());
 }
 
