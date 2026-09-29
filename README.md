@@ -15,7 +15,7 @@ The repository is intentionally unlicensed. Public visibility permits inspection
 Clone the pinned release, install the local MCP server dependencies, then add the checked-out marketplace:
 
 ```bash
-git clone --branch v0.1.7 --depth 1 https://github.com/leokessel-lgtm/jev-codex-partner.git
+git clone --branch v0.1.8 --depth 1 https://github.com/leokessel-lgtm/jev-codex-partner.git
 cd jev-codex-partner
 npm --prefix plugins/jev-codex-partner ci --omit=dev
 codex plugin marketplace add .
