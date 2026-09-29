@@ -1,6 +1,6 @@
 # Architecture and data flow
 
-This repository is a Codex marketplace containing one Node.js MCP plugin. The marketplace manifest points to `plugins/jev-codex-partner`; the plugin manifest exposes its skill and `.mcp.json` server configuration.
+This repository is a Codex marketplace containing one Node.js MCP plugin. The marketplace manifest points to `plugins/jev-codex-partner`; the plugin manifest exposes its skills and `.mcp.json` server configuration.
 
 ## Overview
 
@@ -42,5 +42,6 @@ The client enforces request and response byte limits, rejects credential-shaped 
 
 - [`src/contracts.mjs`](../plugins/jev-codex-partner/src/contracts.mjs): endpoint, model, request shape and limits.
 - [`skills/jev-codex-partner/SKILL.md`](../plugins/jev-codex-partner/skills/jev-codex-partner/SKILL.md): selection and interpretation rules.
+- [`skills/jev-evidence-evaluation/SKILL.md`](../plugins/jev-codex-partner/skills/jev-evidence-evaluation/SKILL.md): Boolean-only evidence evaluation discovery, suppression and provenance rules.
 - [`selection-and-governance.md`](../plugins/jev-codex-partner/skills/jev-codex-partner/references/selection-and-governance.md): transfer and authority controls.
 - Tests under [`test/`](../plugins/jev-codex-partner/test/): current executable evidence.

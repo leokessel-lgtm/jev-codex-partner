@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Add the focused `jev-evidence-evaluation` skill for Boolean-only claim support, citation support and semantic equivalence.
+- Default workspace-derived and ambiguous-provenance inputs to private, require exact-transfer approval, and honour `no JEV` and `local only` overrides.
+
 ## 0.1.7 - 2026-09-26
 
 - Correct the public installation flow so local MCP server dependencies are installed before the marketplace is registered.
