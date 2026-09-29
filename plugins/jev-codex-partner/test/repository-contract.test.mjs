@@ -32,6 +32,8 @@ test('repository exposes the JEV plugin through its local marketplace', () => {
     assert.ok(dependencyInstall >= 0, 'public install must install runtime dependencies');
     assert.ok(marketplaceInstall > dependencyInstall, 'dependencies must be installed before marketplace registration');
     assert.doesNotMatch(readme, /plugin marketplace add leokessel-lgtm\/jev-codex-partner/u);
+    assert.match(readme, /jev-evidence-evaluation/u);
+    assert.match(readme, /Boolean-only/u);
     for (const file of ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md']) {
       assert.equal(fs.existsSync(path.join(repositoryRoot, file)), true, `${file} is required`);
     }

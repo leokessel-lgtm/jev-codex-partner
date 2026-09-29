@@ -36,6 +36,8 @@ The plugin accepts a purpose, minimal state and one or more typed questions:
 - **Choice:** selection among a finite set of labelled alternatives.
 - **Score:** a numeric position against two to ten ordered rubric anchors, including fractional positions when returned by JEV.
 
+The `jev-evidence-evaluation` skill adds focused automatic discovery for three Boolean-only uses: claim-to-evidence support, citation support and semantic equivalence. It may automatically send only deterministically public or synthetic supplied text, after a brief visible notice. Workspace-derived or ambiguous-provenance content is private by default and requires exact-transfer approval. `no JEV` and `local only` suppress the external call.
+
 ## Suitability and Limitations
 
 Use JEV for classification, routing and rubric assessment where typed probabilities improve a bounded decision. Do not use it for generation, open-ended research, arithmetic, dates, planning, deterministic checks or autonomous consequential decisions.

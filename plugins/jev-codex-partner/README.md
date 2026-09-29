@@ -1,6 +1,6 @@
 # JEV Codex Partner Plugin
 
-This package exposes one prompted `evaluate` MCP tool and a concise skill for deciding when bounded Boolean, Choice or Score judgement is useful. Requests go to TypeSafe JEV through Vercel AI Gateway and may be billable.
+This package exposes one prompted `evaluate` MCP tool and two focused skills. `jev-codex-partner` covers bounded Boolean, Choice or Score judgement; `jev-evidence-evaluation` covers Boolean-only claim support, citation support and semantic equivalence with fail-closed provenance controls. Requests go to TypeSafe JEV through Vercel AI Gateway and may be billable.
 
 ## Local Source
 
@@ -19,4 +19,4 @@ Preview the bundled synthetic benchmarks with `npm run benchmark:preview`. `npm 
 
 ## Usage
 
-See the [root README](../../README.md) for installation. Selection, transfer and interpretation boundaries remain canonical in [`skills/jev-codex-partner/SKILL.md`](skills/jev-codex-partner/SKILL.md) and its linked references.
+See the [root README](../../README.md) for installation. General selection, transfer and interpretation boundaries remain canonical in [`skills/jev-codex-partner/SKILL.md`](skills/jev-codex-partner/SKILL.md) and its linked references. Evidence-specific automatic selection and privacy controls are defined in [`skills/jev-evidence-evaluation/SKILL.md`](skills/jev-evidence-evaluation/SKILL.md).
