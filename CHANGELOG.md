@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.1.8 - 2026-09-30
 
 - Add the focused `jev-evidence-evaluation` skill for Boolean-only claim support, citation support and semantic equivalence.
 - Default workspace-derived and ambiguous-provenance inputs to private, require exact-transfer approval, and honour `no JEV` and `local only` overrides.
