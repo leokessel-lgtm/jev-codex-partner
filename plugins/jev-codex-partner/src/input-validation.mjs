@@ -5,6 +5,7 @@ import {
   MAX_STATE_QUESTION_BYTES,
   MODEL_ID,
   PROVIDER_OPTIONS,
+  RECORD_OUTCOME_INPUT_SCHEMA,
   ZDR_PROVIDER_OPTIONS,
 } from './contracts.mjs';
 import { containsCredentialValue } from './error-sanitisation.mjs';
@@ -16,6 +17,7 @@ const ajv = new Ajv({
   useDefaults: false,
 });
 const validateSchema = ajv.compile(EVALUATE_INPUT_SCHEMA);
+const validateOutcomeSchema = ajv.compile(RECORD_OUTCOME_INPUT_SCHEMA);
 
 const CREDENTIAL_KEYS = new Set([
   'apikey',
@@ -99,6 +101,29 @@ export function validateEvaluateInput(raw) {
   }
 
   return { ok: true, value: raw, providerPayload };
+}
+
+export function validateRecordOutcomeInput(raw) {
+  if (!validateOutcomeSchema(raw)) {
+    return {
+      ok: false,
+      errors: validateOutcomeSchema.errors.map(({ instancePath, message }) => ({
+        path: instancePath || '$',
+        message,
+      })),
+    };
+  }
+
+  const mustBeOverride = raw.action === 'overridden';
+  if (raw.override !== mustBeOverride) {
+    return validationFailure(
+      '$.override',
+      raw.action === 'overridden'
+        ? 'must be true when action is overridden'
+        : 'must be false unless action is overridden',
+    );
+  }
+  return { ok: true, value: raw };
 }
 
 export function findCredentialPath(value) {

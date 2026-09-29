@@ -23,6 +23,12 @@ Do not substitute `codex plugin marketplace add leokessel-lgtm/jev-codex-partner
 
 Repository access and JEV gateway authentication are separate checks. Cloning is public, but evaluations still require your own gateway credential.
 
+## Outcome ledger issues
+
+Set `JEV_OUTCOME_LEDGER_DIR` to an absolute directory owned by the account running Codex, then restart the JEV MCP process. Existing directories must have mode `0700`; existing daily ledger files must have mode `0600`. Symbolic-link, ownership, permission and file-limit failures return only `disabled_or_unavailable` or `ledger_unavailable`, without exposing the configured path.
+
+Removing or emptying `JEV_OUTCOME_LEDGER_DIR` disables new recording without deleting existing ledger files. The plugin has no export or migration command in v0.1.9.
+
 ## Evaluation failures
 
 - `gateway_not_configured`: configure one of the authentication methods above.

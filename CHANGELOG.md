@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.9 - 2026-09-30
+
+- Add an opt-in, privacy-minimised local outcome ledger for calibration without storing raw state, prompts, question text or semantic labels.
+- Add the prompted, local-only `record_outcome` tool with strict enumerated fields and no network request.
+- Enforce owner-only storage, symlink and descriptor checks, daily UTC rotation, 30-day retention, a 5,000,000-byte pre-append limit and generic fail-open evaluation status.
+- Document the separation between source evidence, JEV output, ledger telemetry and human decisions.
+
 ## 0.1.8 - 2026-09-30
 
 - Add the focused `jev-evidence-evaluation` skill for Boolean-only claim support, citation support and semantic equivalence.

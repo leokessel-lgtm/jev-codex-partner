@@ -9,4 +9,6 @@ Use this implicitly discoverable skill with automatic discovery when a small, ty
 
 Before calling the local partner tool, briefly explain why JEV fits the question. Keep the input minimal and follow the transfer, authority and interpretation rules in [selection and governance](references/selection-and-governance.md). Use the provider mechanics and question patterns in [question design](references/question-design.md).
 
+Request opt-in ledger recording only when the operator has enabled it and the task calls for calibration. Never infer activation or automatically record a later outcome. The governance reference defines the privacy boundary.
+
 JEV is not for generation, research, maths, counting, dates, planning, precision work, questions that ordinary deterministic code can answer reliably, or autonomous consequential decisions. Results are advisory-only: no authority expansion, no external action and no invented reasoning that JEV did not return. There is no automatic Antigravity run and no model selection. There is no universal confidence threshold; interpret the typed result in context and apply human review where needed.
